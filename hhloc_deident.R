@@ -30,7 +30,7 @@ hhloc_sjoin <- hhloc %>%
     iid = terra::extract(island,hhloc)[,"iid"]
   )
 
-# For this case we assign Urban Rural Strata from 
+# For this test case we assign Urban Rural Strata from island code 
 hhloc_init <- hhloc_sjoin %>% 
   mutate( ur = ifelse(vid %in% c(7,22), "U","R"))
 
