@@ -231,6 +231,5 @@ toc()
 writeVector(displaced_points, paste0(layers,"/displaced_test2.gpkg"), overwrite = TRUE)
 
 
-
 #  EVALUATE DEIDENTIFICATION PROCESS -----------------------------------------
 #  PREPARE DATA TO BE INCLUDED INTO MICRODATA DATASET ------------------------
