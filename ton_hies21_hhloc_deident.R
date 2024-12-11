@@ -179,8 +179,6 @@ toc()
 
 # writeVector(displaced_points, paste0(layers,"/displaced_hhloc.gpkg"), overwrite = TRUE)
 
-
-#  EVALUATE DEIDENTIFICATION PROCESS -----------------------------------------
 #  PREPARE DATA TO BE INCLUDED INTO MICRODATA DATASET ------------------------
 output <- displaced_points
 
