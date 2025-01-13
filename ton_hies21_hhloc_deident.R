@@ -1,7 +1,7 @@
 # Same workflow but including:
 # - Import data from Stata.
 # - Standardize the layers we import calling them adminbound or something like that
-# so we set the script at the begining and we replicate process.
+# so we set the script at the beginning and we replicate process.
 
 ### DEIDENTIFICATION OF HOUSEHOLD LOCATIONS FROM SURVEY DATASETS ###
 ### BASED ON MICS GIS INITITATIVE METHODOLOGY ###
@@ -106,6 +106,7 @@ hhloc_to_displ <- hhloc_sjoin %>%
 table(hhloc_to_displ$ur)
 
 
+
 #  4. HH LOCATIONS DEIDENTIFICATION PROCESS -------------------------------------
 points <- hhloc_to_displ
 
@@ -195,12 +196,5 @@ output <- output %>%
 plot(output)
 
 # Export as gpkg and as csv too
-writeVector(output, paste0(layers,"/displaced_hhloc_4326.gpkg"), overwrite = TRUE)
-write.csv(output, paste0(layers,"/displaced_hhloc_4326.csv"))
-           
-    
-    
-    
-    
-    
-
+writeVector(output, paste0(layers,"displaced_hhloc_4326.gpkg"), overwrite = TRUE)
+write.csv(output, paste0(layers,"displaced_hhloc_4326.csv"))
