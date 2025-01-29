@@ -21,6 +21,7 @@ library("tictoc") # processing time
 library("purrr")
 library("eeptools")
 library("haven") # to read stata datasets
+library("tmap") # to map resups
 
 # For spatial analysis
 library("terra")

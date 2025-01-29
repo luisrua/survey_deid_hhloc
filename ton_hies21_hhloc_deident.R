@@ -38,7 +38,8 @@ hhloc_dta <- hhloc_dta %>%
 # Convert to spatial object
 hhloc <- vect(hhloc_dta, geom = c("x","y"), crs="EPSG:4326")
 plot(hhloc)
-
+# plot hhloc using different color nased on block code
+plot(hhloc, col = hhloc$block)
 
 # Reproject to metric
 metric_crs <- crs("EPSG:3832")
@@ -75,7 +76,7 @@ abid_na <- hhloc_sjoin %>%
 # Check unique identifier
 isid(as.data.frame(hhloc_sjoin), vars="interview__key")
 
-# For this dataset ur = 1 > Urban ur = 2 > Rural
+# For this dataset ur = 1 -> Urban ur = 2 -> Rural
 
 head(hhloc_sjoin)
 table(hhloc_sjoin$ur)
@@ -97,14 +98,13 @@ random_selection <- hhloc_sjoin %>%
   mutate(ur = "R1")
 
 # Inspect the result
-print(random_selection)
+as_tibble(random_selection)
 
 # Merge with original hhlocations dataset identifying the Rural points that are R1
 hhloc_to_displ <- hhloc_sjoin %>%
   filter(!(interview__key %in% random_selection$interview__key)) %>%  # Remove original rows in the selection
   rbind(random_selection)  
 table(hhloc_to_displ$ur)
-
 
 
 #  4. HH LOCATIONS DEIDENTIFICATION PROCESS -------------------------------------
@@ -198,3 +198,85 @@ plot(output)
 # Export as gpkg and as csv too
 writeVector(output, paste0(layers,"displaced_hhloc_4326.gpkg"), overwrite = TRUE)
 write.csv(output, paste0(layers,"displaced_hhloc_4326.csv"))
+
+# 5. Evaluate deidentification process -----------------------------------------
+# Need to do more research on this, contact people from MICS GIS Initiative????
+
+
+# 6. Analyse displacement from geographic perspective ------------------------
+original_df <- as.data.frame(hhloc)
+displaced_df <- as.data.frame(displaced_points)
+
+# Calculate paths between original and displaced points 
+paths <- list() 
+
+for (i in 1:nrow(original_df)){ 
+  # Extract points with matching ids 
+  orig <- hhloc[hhloc$interview__key == original_df$interview__key[i], ] 
+  disp <- displaced_points[displaced_points$interview__key == original_df$interview__key[i], ] 
+  
+  # Create a line from the original to displaced point 
+  line <- rbind(crds(orig), crds(disp))  # Coordinates of the two points 
+  paths[[i]] <- vect(line, type = "lines", crs = crs(hhloc)) 
+  # Get interviewer__key id for each of the lines
+  paths[[i]]$interview__key <- original_df$interview__key[i]
+}
+# Combine list into single dataset
+paths_vect <- do.call(rbind, paths)
+
+# Calculate distances
+paths_vect <- paths_vect %>% 
+  mutate(length_m = terra::perim(paths_vect)) %>% 
+  print()
+
+# Merge with original dataset to get Urban rural classification
+paths_vect <- paths_vect %>% 
+  left_join(as.data.frame(points) %>% 
+  select(interview__key, ur), by="interview__key") %>% 
+  print()
+
+paths_vect_stat <- paths_vect %>% 
+  as.data.frame() %>%
+  group_by(ur) %>% 
+  summarise(disp_mean = mean(length_m), 
+            disp_sd = sd(length_m), 
+            dips_count = n(),
+            disp_max = max(length_m),
+            disp_min = min(length_m),
+            disp_range = max(length_m) - min(length_m))
+
+paths_vect_stat
+
+# 7. Map results -----------------------------------------------------------
+# Show map original and displaced points joined by the paths of a urban district dsid 11
+tmap_mode("view")  # Set to interactive mode
+
+# Example urban area
+urban_example_map <- tm_shape(st_as_sf(hhloc)) + tm_dots(col = "blue") +
+  tm_shape(st_as_sf(displaced_points)) + tm_dots(col = "red") +
+  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "white", lwd = 0.6) + 
+  tm_shape(st_as_sf(ab)) + tm_borders(col = "orange", lwd = 3) + 
+  tm_basemap("Esri.WorldImagery") +
+  tm_view(bbox = st_bbox(ab %>% filter(dsid == 11)))
+
+urban_example_map
+
+# Example rural area
+rural_example_map <-tm_shape(st_as_sf(hhloc)) + tm_dots(col = "blue") +
+  tm_shape(st_as_sf(displaced_points)) + tm_dots(col = "red") +
+  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "white", lwd = 0.6) + 
+  tm_shape(st_as_sf(ab)) + tm_borders(col = "orange", lwd = 3) + 
+  tm_basemap("Esri.WorldImagery") +
+  tm_view(bbox = st_bbox(ab %>% filter(dsid == 25)))
+
+
+rural_example_map
+
+
+
+# Save maps on image format
+tmap_save(urban_example_map, filename = paste0(layers,"urban_example_map.png"), width = 10, height = 10, dpi = 300)
+tmap_save(rural_example_map, filename = paste0(layers,"rural_example_map.png"), width = 10, height = 10, dpi = 300)
+
+
+
