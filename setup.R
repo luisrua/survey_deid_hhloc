@@ -23,6 +23,7 @@ library("eeptools")
 library("haven") # to read stata datasets
 library("tmap") # to map resups
 
+
 # For spatial analysis
 library("terra")
 library("sp")
@@ -30,6 +31,8 @@ library("sf")
 library("tidyterra")
 library("conflicted")
 library("raster")
+#install.packages("sfdct")
+library(sfdct)
 
 # library("spcstyle") # See https://github.com/PacificCommunity/sdd-spcstyle-r-package
 # library("scales")
