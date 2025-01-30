@@ -140,12 +140,17 @@ clust_centr <- terra::centroids(vect(polygons), inside =T )
 
 
 # Plot hh locations, polygons and centroids for checking purposes
-tm_shape(polygons) +
-  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.5) +  # Plot convex hulls
-  tm_shape(st_as_sf(hhloc)) +
-  tm_dots(col = "block", size = 0.2, alpha = 0.7, palette = "Set1", title = "Block") + # Plot points
+ # Plot convex hulls
+tm_shape(st_as_sf(hhloc)) +
+  tm_dots(col = "block", palette = "Set1", title = "Block") + # Plot points
   tm_shape(st_as_sf(clust_centr)) +
-  tm_dots(col = "red")
+  tm_dots(col = "red") + 
+  tm_shape(polygons) +
+  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.5) + 
+  tm_shape(st_as_sf(block_pol)) + 
+  tm_polygons(border.col = "orange", alpha = 0)+
+  tm_basemap("Esri.WorldImagery") 
+  
 
 # Complete dataframe for the following operations. making 1:n join
 clust <- clust_centr %>% 
@@ -267,8 +272,8 @@ final_data <- hhloc_sjoin %>%
   
 
 # Export as gpkg and as csv too
-writeVector(output, paste0(layers,"displaced_hhloc_4326.gpkg"), overwrite = TRUE)
-write.csv(output, paste0(layers,"displaced_hhloc_4326.csv"))
+
+write.csv(final_data, paste0(layers,"displaced_hhloc_4326.csv"))
 
 # 5. Evaluate deidentification process -----------------------------------------
 # Need to do more research on this, contact people from MICS GIS Initiative????
@@ -323,12 +328,12 @@ paths_vect_stat
 tmap_mode("view")  # Set to interactive mode
 
 # Example urban area
-urban_example_map <- tm_shape(st_as_sf(hhloc)) + tm_dots(col = "blue") +
-  tm_shape(st_as_sf(displaced_points)) + tm_dots(col = "red") +
-  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "white", lwd = 0.6) + 
+urban_example_map <-   tm_shape(st_as_sf(displaced_points)) + tm_dots(col = "red") +
+  tm_shape(st_as_sf(hhloc)) + tm_dots(col = "blue") +
+  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "#50fe00", lwd = 1) + 
   tm_shape(st_as_sf(ab)) + tm_borders(col = "orange", lwd = 3) + 
   tm_shape(polygons) +
-  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.5) +  # Plot convex hulls
+  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.2) +  # Plot convex hulls
   tm_basemap("Esri.WorldImagery") +
   tm_view(bbox = st_bbox(ab %>% filter(dsid == 11)))
 
@@ -337,10 +342,10 @@ urban_example_map
 # Example rural area
 rural_example_map <-tm_shape(st_as_sf(hhloc)) + tm_dots(col = "blue") +
   tm_shape(st_as_sf(displaced_points)) + tm_dots(col = "red") +
-  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "white", lwd = 0.6) + 
+  tm_shape(st_as_sf(paths_vect)) + tm_lines(col = "#50fe00", lwd = 1) + 
   tm_shape(st_as_sf(ab)) + tm_borders(col = "orange", lwd = 3) + 
   tm_shape(polygons) +
-  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.5) +  # Plot convex hulls
+  tm_polygons(col = "lightblue", border.col = "black", alpha = 0.2) +  # Plot convex hulls
   tm_basemap("Esri.WorldImagery") +
   tm_view(bbox = st_bbox(ab %>% filter(dsid == 25)))
 
